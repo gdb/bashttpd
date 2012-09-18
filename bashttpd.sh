@@ -35,19 +35,10 @@ function get_content_type() {
     CONTENT_TYPE=$( file -b --mime-type ${URL_PATH} )
 }
 
-function get_content_body() {
-    URL_PATH=$1
-    CONTENT_TYPE=$2
-    if [[ ${CONTENT_TYPE} =~ "^text" ]]; then
-        CONTENT_BODY="$( cat ${URL_PATH} )"
-    else
-        CONTENT_BODY="$( cat ${URL_PATH} )"
-    fi
-}
-
 function get_content_length() {
-    CONTENT_BODY="$1"
-    CONTENT_LENGTH=$( echo ${CONTENT_BODY} | wc -c )
+    URL_PATH=$1
+    # cross platform stat
+    CONTENT_LENGTH=$( stat -c%s ${URL_PATH} 2>/dev/null || stat -f%z ${URL_PATH} 2>/dev/null )
 }
 
 function serve_500() {
@@ -105,8 +96,7 @@ fi
 if [ -f ${URL_PATH} -a -r ${URL_PATH} ]; then
     # Return 200 and file contents
     get_content_type "${URL_PATH}"
-    get_content_body "${URL_PATH}" "${CONTENT_TYPE}"
-    get_content_length "${CONTENT_BODY}"
+    get_content_length "${URL_PATH}"
     HTTP_RESPONSE="HTTP/1.0 200 OK"
 elif [ -f ${URL_PATH} -a ! -r ${URL_PATH} ]; then
     # Return 403 for unreadable files
@@ -158,8 +148,12 @@ fi
 
 echo "${HTTP_RESPONSE}"
 echo "${REPLY_HEADERS}"
-#echo "Content-length: ${CONTENT_LENGTH}"
+echo "Content-length: ${CONTENT_LENGTH}"
 echo "Content-type: ${CONTENT_TYPE}"
 echo
-echo "${CONTENT_BODY}"
+if [ "${CONTENT_BODY}" ]; then
+  echo "${CONTENT_BODY}"
+else
+  cat ${URL_PATH}
+fi
 exit

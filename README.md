@@ -6,12 +6,11 @@ Requirements:
   3. A healthy dose of insanity
 
 Features:
-  1. Serves text and HTML files
+  1. Serves text, HTML and binary files
   2. Shows directory listings
 
 Limitations (PATCHES WELCOME!):
-  1. Cannot yet serve files - we just need a way to encode files correctly on the command line. Any suggestions?
-  2. Does not support authentication
+  1. Does not support authentication
 
 Security:
   1. No input filtering yet.
