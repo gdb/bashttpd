@@ -130,8 +130,16 @@ elif [ -d ${URL_PATH} ]; then
         basehref="${basehref%%/}"
         CONTENT_BODY="$(tree -H "$basehref" -L 1 $tree_opts -D ${URL_PATH})"
     else
-        CONTENT_TYPE="text/plain"
-        CONTENT_BODY=$( ls -la ${URL_PATH} )
+        # Is using sed considered cheating?
+        CONTENT_TYPE="text/html"
+        LT="<" # hack so that `file` doesn't think are script is html
+        # replace space with &nbsp; and linkify things
+        CONTENT_BODY=$( ls -la ${URL_PATH} |
+            sed -e 's/ /\&nbsp;/g' |
+            sed -e 's/"/\&quote;/g' |
+            sed -e 's/</\&lt;/g' |
+            sed -e "s/\(.*\)&nbsp;/<tt>\1 ${LT}a href=\"/" |
+            sed -e 's/"\(.*\)/"\1">\1<\/a><\/tt><br>/' )
     fi
     CONTENT_LENGTH=$(echo "${CONTENT_BODY}" | wc -c)
     HTTP_RESPONSE="HTTP/1.0 200 OK"
